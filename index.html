@@ -42,8 +42,7 @@
       color: #f5f5f7;
     }
     * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; scroll-snap-type: y mandatory; }
-    html.features-visible { scroll-snap-type: none; }
+    html { scroll-behavior: smooth; }
     body {
       margin: 0;
       min-width: 320px;
@@ -93,8 +92,6 @@
       display: grid;
       min-height: 100svh;
       place-items: center;
-      scroll-snap-align: start;
-      scroll-snap-stop: always;
       text-align: center;
       padding: 40px 20px;
     }
@@ -247,19 +244,20 @@
     }
     .scroll-link::after { content: "↓"; font-size: 18px; }
     .scroll-link:hover { transform: translate(-50%, -2px); color: var(--accent-green); }
-    html.features-visible .scroll-link {
+    html.scrolled .scroll-link {
       position: fixed;
       z-index: 3;
       top: 24px;
       bottom: auto;
-      background: rgba(0, 0, 0, 0.7);
-      padding: 6px 14px;
+      background: rgba(0, 0, 0, 0.75);
+      padding: 6px 16px;
       border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.18);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
     }
-    html.features-visible .scroll-link::after { content: "↑"; }
+    html.scrolled .scroll-link::after { content: "↑"; }
 
     /* Features Section */
     .features {
@@ -268,12 +266,9 @@
       display: flex;
       flex-direction: column;
       justify-content: center;
-      min-height: 100svh;
       width: min(100% - 40px, 1140px);
       margin: 0 auto;
-      padding: 32px 0;
-      scroll-snap-align: start;
-      scroll-snap-stop: always;
+      padding: 64px 0;
     }
     .features-header {
       text-align: center;
@@ -891,36 +886,33 @@
         carousel.style.removeProperty('--pointer-y');
       });
 
-      // Background ambient fade
-      const fadeBackground = () => {
-        const progress = document.documentElement.classList.contains('features-visible')
-          ? 1
-          : Math.min(1, window.scrollY / Math.max(features.offsetTop, 1));
-        document.documentElement.style.setProperty('--background-fade-opacity', String(0.4 + (0.6 * progress)));
+      // Background ambient fade and scroll indicator
+      // ponytail: fixed 300px threshold for scroll indicator; upgrade to hero bounding rect if dynamic hero height required.
+      const updateScrollState = () => {
+        const scrolled = window.scrollY > 300;
+        document.documentElement.classList.toggle("scrolled", scrolled);
+        scrollLink.textContent = scrolled ? "Back to top" : "Explore features";
+        const maxScroll = Math.max(document.documentElement.scrollHeight - window.innerHeight, 1);
+        const progress = Math.min(1, window.scrollY / maxScroll);
+        document.documentElement.style.setProperty("--background-fade-opacity", String(0.4 + (0.5 * progress)));
       };
 
-      const setFeaturesVisible = atFeatures => {
-        document.documentElement.classList.toggle('features-visible', atFeatures);
-        scrollLink.textContent = atFeatures ? 'Back to top' : 'Explore features';
-        fadeBackground();
-      };
-
-      window.addEventListener('scroll', () => {
+      window.addEventListener("scroll", () => {
         cancelAnimationFrame(backgroundFrame);
-        backgroundFrame = requestAnimationFrame(fadeBackground);
+        backgroundFrame = requestAnimationFrame(updateScrollState);
       }, { passive: true });
 
-      new IntersectionObserver(([entry]) => setFeaturesVisible(entry.isIntersecting), { threshold: 0.25 })
-        .observe(carouselStage);
-
-      scrollLink.addEventListener('click', event => {
-        if (!document.documentElement.classList.contains('features-visible')) return;
+      scrollLink.addEventListener("click", event => {
         event.preventDefault();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        if (window.scrollY > 300) {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        } else {
+          document.getElementById("features")?.scrollIntoView({ behavior: "smooth" });
+        }
       });
 
       activate(0);
-      fadeBackground();
+      updateScrollState();
     })();
   </script>
 </body>
