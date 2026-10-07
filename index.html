@@ -1,0 +1,927 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <meta name="description" content="anotherMQTT is a modern, cross-platform MQTT 5.0 desktop client for macOS, Windows, and Linux with topic-scoped isolation, dynamic action resolution, and payload collection management.">
+  <link rel="canonical" href="https://jinkun1998.github.io/anotherMQTT/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="anotherMQTT - Modern Cross-Platform MQTT 5.0 Desktop Client">
+  <meta property="og:description" content="Topic-scoped isolation, dynamic action resolution, and payload collections—built for real IoT workflows.">
+  <meta property="og:url" content="https://jinkun1998.github.io/anotherMQTT/">
+  <meta property="og:image" content="https://jinkun1998.github.io/anotherMQTT/assets/app-logo.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="anotherMQTT - Modern Cross-Platform MQTT 5.0 Desktop Client">
+  <meta name="twitter:description" content="Topic-scoped isolation, dynamic action resolution, and payload collections—built for real IoT workflows.">
+  <title>anotherMQTT - Modern Cross-Platform MQTT 5.0 Desktop Client</title>
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "anotherMQTT",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "macOS, Windows, Linux",
+      "description": "Modern cross-platform MQTT 5.0 desktop client with topic-scoped filtering, dynamic action resolution, and payload collection management.",
+      "downloadUrl": "https://github.com/jinkun1998/anotherMQTT/releases/latest",
+      "codeRepository": "https://github.com/jinkun1998/anotherMQTT",
+      "license": "https://www.apache.org/licenses/LICENSE-2.0"
+    }
+  </script>
+  <style>
+    :root {
+      --accent-green: #00e599;
+      --accent-cyan: #00d2ff;
+      --apple-blue: #2997ff;
+      --surface: #1d1d1f;
+      --surface-glass: rgba(29, 29, 31, 0.72);
+      --stroke: rgba(255, 255, 255, 0.12);
+      color-scheme: dark;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
+      background: #000;
+      color: #f5f5f7;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-snap-type: y mandatory; }
+    html.features-visible { scroll-snap-type: none; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      background: #000;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      overflow-x: hidden;
+    }
+    button, a { font: inherit; }
+    button:focus-visible, a:focus-visible { outline: 3px solid var(--apple-blue); outline-offset: 4px; }
+    .text-link { color: inherit; text-decoration: none; }
+    .text-link:hover { color: #fff; }
+
+    /* Ambient atmospheric background */
+    .ambient-glow {
+      position: fixed;
+      top: 0;
+      left: 50%;
+      width: 140vw;
+      height: 100vh;
+      transform: translateX(-50%);
+      pointer-events: none;
+      z-index: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 50% -10%, rgba(0, 229, 153, 0.18), transparent 70%),
+        radial-gradient(ellipse 45% 40% at 75% 20%, rgba(41, 151, 255, 0.14), transparent 60%),
+        radial-gradient(ellipse 40% 35% at 25% 30%, rgba(0, 210, 255, 0.10), transparent 60%);
+      opacity: var(--background-fade-opacity, 0.9);
+      transition: opacity 0.3s ease;
+    }
+    .grid-lines {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 80px 80px;
+      mask-image: radial-gradient(circle at 50% 30%, black 20%, transparent 80%);
+      -webkit-mask-image: radial-gradient(circle at 50% 30%, black 20%, transparent 80%);
+    }
+
+    /* Hero */
+    .hero {
+      position: relative;
+      display: grid;
+      min-height: 100svh;
+      place-items: center;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+      text-align: center;
+      padding: 40px 20px;
+    }
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      width: min(100% - 32px, 780px);
+      padding: 48px 0 64px;
+    }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 22px;
+      padding: 6px 12px 6px 10px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 999px;
+      color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), inset 0 1px rgba(255, 255, 255, 0.15);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+      line-height: 1;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+    }
+    .eyebrow:hover {
+      box-shadow: 0 8px 28px rgba(0, 229, 153, 0.25), 0 0 16px rgba(0, 229, 153, 0.2);
+      border-color: rgba(0, 229, 153, 0.4);
+      transform: translateY(-1px);
+    }
+    .eyebrow-logo {
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+      display: block;
+    }
+    .eyebrow strong {
+      padding-left: 8px;
+      border-left: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent-green);
+    }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 {
+      margin-bottom: 0;
+      font-size: clamp(48px, 9vw, 92px);
+      font-weight: 700;
+      line-height: 1.02;
+      letter-spacing: -0.05em;
+      background: linear-gradient(180deg, #ffffff 40%, rgba(255, 255, 255, 0.65));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .lede {
+      max-width: 620px;
+      margin: 22px auto 36px;
+      color: #a1a1a6;
+      font-size: clamp(18px, 2.2vw, 21px);
+      line-height: 1.45;
+    }
+    .lede strong {
+      color: #f5f5f7;
+      font-weight: 600;
+    }
+    .actions {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .button, .github-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 999px;
+      color: #fff;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.05) 55%, rgba(255, 255, 255, 0.12));
+      box-shadow: inset 0 1px rgba(255, 255, 255, 0.3), inset 0 -1px rgba(255, 255, 255, 0.08), 0 8px 24px rgba(0, 0, 0, 0.4);
+      font-weight: 600;
+      text-decoration: none;
+      transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      backdrop-filter: blur(20px) saturate(180%);
+    }
+    .button { padding: 12px 22px; font-size: 15px; }
+    .button.primary {
+      border-color: rgba(0, 229, 153, 0.7);
+      background: linear-gradient(135deg, #00e599, #00aa6e 60%, #008755);
+      box-shadow: inset 0 1px rgba(255, 255, 255, 0.6), inset 0 -1px rgba(0, 0, 0, 0.3), 0 10px 28px rgba(0, 229, 153, 0.35);
+      color: #000;
+      font-weight: 700;
+    }
+    .button.primary:hover {
+      background: linear-gradient(135deg, #24f8ad, #00c782 60%, #009960);
+      box-shadow: inset 0 1px rgba(255, 255, 255, 0.8), 0 12px 34px rgba(0, 229, 153, 0.5);
+      transform: scale(1.02);
+    }
+    .github-link {
+      width: 112px;
+      gap: 8px;
+      font-size: 14px;
+    }
+    .github-link svg { width: 19px; height: 19px; fill: currentColor; }
+    .button:hover, .github-link:hover {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.26), rgba(255, 255, 255, 0.08) 55%, rgba(255, 255, 255, 0.18));
+      transform: scale(1.02);
+    }
+    .release-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 20px;
+      color: var(--apple-blue);
+      font-size: 13px;
+      font-weight: 500;
+      text-decoration: none;
+    }
+    .release-badge:hover { text-decoration: underline; }
+    .version-tag {
+      background: rgba(41, 151, 255, 0.15);
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-weight: 600;
+      color: var(--apple-blue);
+    }
+
+    /* Scroll toggle link */
+    .scroll-link {
+      position: absolute;
+      z-index: 1;
+      bottom: 24px;
+      left: 50%;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transform: translateX(-50%);
+      color: #a1a1a6;
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: color 0.2s ease, transform 0.2s ease;
+    }
+    .scroll-link::after { content: "↓"; font-size: 18px; }
+    .scroll-link:hover { transform: translate(-50%, -2px); color: var(--accent-green); }
+    html.features-visible .scroll-link {
+      position: fixed;
+      z-index: 3;
+      top: 24px;
+      bottom: auto;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+    html.features-visible .scroll-link::after { content: "↑"; }
+
+    /* Features Section */
+    .features {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 100svh;
+      width: min(100% - 40px, 1140px);
+      margin: 0 auto;
+      padding: 32px 0;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+    }
+    .features-header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .features-header h2 {
+      font-size: clamp(28px, 4vw, 40px);
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      margin-bottom: 8px;
+    }
+    .features-header p {
+      color: #86868b;
+      font-size: 17px;
+    }
+    .carousel-stage { position: relative; }
+    .feature-carousel {
+      display: flex;
+      overflow-x: auto;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 32px;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+      background:
+        radial-gradient(560px circle at var(--pointer-x, 50%) var(--pointer-y, 50%), rgba(0, 229, 153, 0.16) 0, transparent 60%),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(29, 29, 31, 0.85) 34%, rgba(255, 255, 255, 0.08));
+      box-shadow: inset 0 1px rgba(255, 255, 255, 0.3), inset 0 -1px rgba(255, 255, 255, 0.06), 0 24px 80px rgba(0, 0, 0, 0.7);
+      -webkit-backdrop-filter: blur(32px) saturate(180%);
+      backdrop-filter: blur(32px) saturate(180%);
+    }
+    .feature-carousel::-webkit-scrollbar { display: none; }
+    .feature-slide {
+      display: grid;
+      flex: 0 0 100%;
+      grid-template-columns: minmax(0, 1.55fr) minmax(260px, 0.85fr);
+      align-items: center;
+      gap: clamp(24px, 5vw, 64px);
+      min-height: 520px;
+      padding: clamp(24px, 5vw, 56px);
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+    }
+    .feature-media {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 20px;
+      background: #08080a;
+      box-shadow: inset 0 1px rgba(255, 255, 255, 0.25), 0 18px 40px rgba(0, 0, 0, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .feature-media img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      object-fit: cover;
+      object-position: center top;
+      transition: transform 0.3s ease;
+    }
+    .feature-slide:hover .feature-media img {
+      transform: scale(1.015);
+    }
+    .feature-copy { align-self: center; }
+    .feature-count {
+      margin-bottom: 14px;
+      color: var(--accent-green);
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+    h3 {
+      margin-bottom: 14px;
+      font-size: clamp(28px, 4vw, 38px);
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -0.04em;
+    }
+    .feature-copy p {
+      margin-bottom: 0;
+      color: #a1a1a6;
+      font-size: 17px;
+      line-height: 1.5;
+    }
+    .feature-badge {
+      display: inline-block;
+      margin-top: 18px;
+      padding: 5px 12px;
+      border-radius: 8px;
+      background: rgba(0, 229, 153, 0.12);
+      border: 1px solid rgba(0, 229, 153, 0.25);
+      color: var(--accent-green);
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .carousel-control {
+      position: absolute;
+      z-index: 1;
+      top: 50%;
+      display: grid;
+      width: 48px;
+      height: 48px;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 50%;
+      place-items: center;
+      color: #fff;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.22), rgba(29, 29, 31, 0.9));
+      box-shadow: inset 0 1px rgba(255, 255, 255, 0.35), 0 8px 24px rgba(0, 0, 0, 0.5);
+      cursor: pointer;
+      font-size: 26px;
+      transform: translateY(-50%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      backdrop-filter: blur(20px) saturate(180%);
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+    .carousel-control:hover:not(:disabled) {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.35), rgba(58, 58, 60, 0.95));
+      transform: translateY(-50%) scale(1.05);
+    }
+    .carousel-control:disabled { opacity: 0.3; cursor: default; }
+    .carousel-control.previous { left: -24px; }
+    .carousel-control.next { right: -24px; }
+    .carousel-footer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      margin-top: 22px;
+    }
+    .carousel-indicators { display: flex; gap: 9px; }
+    .carousel-indicator {
+      width: 9px;
+      height: 9px;
+      padding: 0;
+      border: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.22);
+      cursor: pointer;
+      transition: width 0.2s ease, border-radius 0.2s ease, background 0.2s ease;
+    }
+    .carousel-indicator[aria-current="true"] {
+      width: 32px;
+      border-radius: 999px;
+      background: var(--accent-green);
+    }
+
+    /* Downloads Grid Section */
+    .downloads-section {
+      position: relative;
+      z-index: 1;
+      width: min(100% - 40px, 1140px);
+      margin: 40px auto 80px;
+      padding-top: 40px;
+    }
+    .downloads-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .downloads-header h2 {
+      font-size: clamp(32px, 5vw, 44px);
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      margin-bottom: 10px;
+    }
+    .downloads-header p {
+      color: #86868b;
+      font-size: 18px;
+    }
+    .platform-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    .platform-card {
+      position: relative;
+      padding: 32px 28px;
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(29, 29, 31, 0.65));
+      box-shadow: inset 0 1px rgba(255, 255, 255, 0.2), 0 20px 48px rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .platform-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(0, 229, 153, 0.4);
+      box-shadow: inset 0 1px rgba(255, 255, 255, 0.3), 0 24px 60px rgba(0, 229, 153, 0.15);
+    }
+    .platform-icon {
+      width: 48px;
+      height: 48px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+    .platform-icon svg {
+      width: 26px;
+      height: 26px;
+      fill: #fff;
+    }
+    .platform-title {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .platform-desc {
+      color: #86868b;
+      font-size: 14px;
+      margin-bottom: 24px;
+      line-height: 1.4;
+    }
+    .download-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: auto;
+    }
+    .download-link-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+    .download-link-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.28);
+    }
+    .download-link-btn.highlight {
+      background: rgba(0, 229, 153, 0.12);
+      border-color: rgba(0, 229, 153, 0.4);
+      color: var(--accent-green);
+    }
+    .download-link-btn.highlight:hover {
+      background: rgba(0, 229, 153, 0.22);
+    }
+    .download-meta {
+      font-size: 11px;
+      font-weight: 500;
+      color: #86868b;
+    }
+
+    /* Footer */
+    footer {
+      position: relative;
+      z-index: 1;
+      width: min(100% - 40px, 1140px);
+      margin: 0 auto;
+      padding: 36px 0 54px;
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      font-size: 13px;
+      color: #86868b;
+    }
+    footer a {
+      color: #a1a1a6;
+      text-decoration: none;
+      transition: color 0.15s ease;
+    }
+    footer a:hover { color: #fff; }
+    .footer-links {
+      display: flex;
+      gap: 20px;
+    }
+
+    @media (max-width: 900px) {
+      .platform-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 760px) {
+      .hero-content { width: min(100% - 28px, 620px); }
+      .features { width: min(100% - 28px, 1140px); padding: 24px 0; }
+      .feature-slide { grid-template-columns: 1fr; min-height: 0; }
+      .feature-copy { order: -1; }
+      .carousel-control { top: auto; bottom: 20px; transform: none; }
+      .carousel-control.previous { left: 20px; }
+      .carousel-control.next { right: 20px; }
+      .carousel-footer { min-height: 64px; }
+      footer { flex-direction: column; text-align: center; }
+    }
+    @media (max-width: 480px) {
+      .hero-content { padding-bottom: 72px; }
+      h1 { font-size: clamp(42px, 13vw, 56px); }
+      .lede { margin: 16px auto 24px; font-size: 16px; }
+      .button { padding: 12px 18px; }
+      .github-link { width: 104px; min-height: 46px; }
+      .feature-carousel { border-radius: 22px; }
+      .feature-slide { gap: 24px; padding: 22px 18px 76px; }
+      .feature-copy p { font-size: 15px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient-glow" aria-hidden="true"></div>
+  <div class="grid-lines" aria-hidden="true"></div>
+
+  <main>
+    <!-- Hero Section -->
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-content">
+        <p class="eyebrow">
+          <img class="eyebrow-logo" src="assets/app-logo.png" alt="anotherMQTT icon" />
+          <span>Cross-Platform</span>
+          <strong>MQTT 5.0</strong>
+        </p>
+        <h1 id="hero-title">anotherMQTT</h1>
+        <p class="lede">
+          The next-generation MQTT 5.0 desktop client.<br>
+          <strong>Topic-scoped isolation</strong>, <strong>dynamic action resolution</strong>, and <strong>payload collections</strong>—built for real IoT workflows.
+        </p>
+
+        <div class="actions">
+          <a id="primary-download-btn" class="button primary" href="#downloads">
+            <span id="primary-download-text">Download for Mac</span>
+          </a>
+          <a class="github-link" href="https://github.com/jinkun1998/anotherMQTT" aria-label="anotherMQTT on GitHub" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .7a11.3 11.3 0 0 0-3.6 22c.6.1.8-.3.8-.6v-2.2c-3.4.8-4.1-1.4-4.1-1.4-.6-1.4-1.3-1.8-1.3-1.8-1.1-.8.1-.8.1-.8 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.4 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.6-1.4-5.6-6a4.7 4.7 0 0 1 1.2-3.2c-.1-.3-.5-1.6.1-3.2 0 0 1-.3 3.3 1.2a11.4 11.4 0 0 1 6 0c2.3-1.5 3.3-1.2 3.3-1.2.6 1.6.2 2.9.1 3.2a4.7 4.7 0 0 1 1.2 3.2c0 4.7-2.9 5.7-5.6 6 .4.4.8 1.1.8 2.2v3.2c0 .3.2.7.8.6A11.3 11.3 0 0 0 12 .7Z"/></svg>
+            <span>GitHub</span>
+          </a>
+        </div>
+
+        <div>
+          <a class="release-badge" href="https://github.com/jinkun1998/anotherMQTT/releases/tag/v1.0.0" target="_blank" rel="noopener">
+            <span class="version-tag">v1.0.0</span>
+            <span>View Release Notes &rarr;</span>
+          </a>
+        </div>
+      </div>
+      <a class="scroll-link" href="#features">Explore features</a>
+    </section>
+
+    <!-- Features Carousel Section -->
+    <section class="features" id="features" aria-label="Explore features">
+      <div class="features-header">
+        <h2>Engineered for Precision</h2>
+        <p>Eliminate message noise and misdirected publish commands.</p>
+      </div>
+
+      <div class="carousel-stage">
+        <div class="feature-carousel" data-carousel tabindex="0" aria-label="Feature carousel. Use left and right arrow keys to change slides.">
+          <!-- Slide 1 -->
+          <article class="feature-slide" data-slide aria-label="Slide 1 of 5: Topic-Scoped Isolation">
+            <div class="feature-media">
+              <img src="assets/features/topic-scoped.png" alt="Topic-Scoped Isolation & Filtering" loading="lazy">
+            </div>
+            <div class="feature-copy">
+              <p class="feature-count">01 / 05</p>
+              <h3>Topic-Scoped Isolation</h3>
+              <p>Click any active subscription to instantly focus the feed on that exact topic. Outgoing requests and incoming responses stay paired together without cross-device clutter.</p>
+              <span class="feature-badge">Zero Message Noise</span>
+            </div>
+          </article>
+
+          <!-- Slide 2 -->
+          <article class="feature-slide" data-slide aria-label="Slide 2 of 5: Dynamic Action Resolution">
+            <div class="feature-media">
+              <img src="assets/features/dynamic-actions.png" alt="Dynamic Action Resolution" loading="lazy">
+            </div>
+            <div class="feature-copy">
+              <p class="feature-count">02 / 05</p>
+              <h3>Dynamic Action Resolution</h3>
+              <p>Subscribe to wildcard device streams (<code>device/#</code>) and publish to relative action routes like <code>reqcfg</code> or <code>${base}/status</code>. Target topics resolve on the fly without re-typing serial numbers.</p>
+              <span class="feature-badge">Automatic Prefix Binding</span>
+            </div>
+          </article>
+
+          <!-- Slide 3 -->
+          <article class="feature-slide" data-slide aria-label="Slide 3 of 5: Payload Collections">
+            <div class="feature-media">
+              <img src="assets/features/payload-collection.png" alt="Payload Collection Management" loading="lazy">
+            </div>
+            <div class="feature-copy">
+              <p class="feature-count">03 / 05</p>
+              <h3>Payload Collections (Ctrl+S)</h3>
+              <p>Save request bodies, QoS configurations, and custom action subtopics into an organized library. Switch between devices and dispatch command payloads with a single click.</p>
+              <span class="feature-badge">Instant Keyboard Shortcut</span>
+            </div>
+          </article>
+
+          <!-- Slide 4 -->
+          <article class="feature-slide" data-slide aria-label="Slide 4 of 5: Full MQTT 5.0 & 3.1.1 Spec">
+            <div class="feature-media">
+              <img src="assets/features/mqtt5.png" alt="Full MQTT 5.0 and 3.1.1 Specification" loading="lazy">
+            </div>
+            <div class="feature-copy">
+              <p class="feature-count">04 / 05</p>
+              <h3>Full MQTT 5.0 &amp; 3.1.1</h3>
+              <p>Comprehensive support for modern broker specifications: User Properties, Correlation Data, Response Topics, Subscription Identifiers, Reason Codes, and Will Messages.</p>
+              <span class="feature-badge">Enterprise Ready</span>
+            </div>
+          </article>
+
+          <!-- Slide 5 -->
+          <article class="feature-slide" data-slide aria-label="Slide 5 of 5: Multi-Format Data Viewer">
+            <div class="feature-media">
+              <img src="assets/features/multi-format.png" alt="Multi-Format Data Viewer" loading="lazy">
+            </div>
+            <div class="feature-copy">
+              <p class="feature-count">05 / 05</p>
+              <h3>Multi-Format Viewer</h3>
+              <p>Inspect payloads in JSON, Plaintext, Hex, Base64, and CBOR. Real-time syntax tree rendering, automatic formatting, and context-menu copying for high-speed debugging.</p>
+              <span class="feature-badge">Deep Inspection</span>
+            </div>
+          </article>
+        </div>
+
+        <button class="carousel-control previous" type="button" data-previous aria-label="Previous feature">&lsaquo;</button>
+        <button class="carousel-control next" type="button" data-next aria-label="Next feature">&rsaquo;</button>
+      </div>
+
+      <div class="carousel-footer">
+        <div class="carousel-indicators" aria-label="Feature slides">
+          <button class="carousel-indicator" type="button" data-indicator="0" aria-label="Show Topic-Scoped Isolation" aria-current="true"></button>
+          <button class="carousel-indicator" type="button" data-indicator="1" aria-label="Show Dynamic Action Resolution" aria-current="false"></button>
+          <button class="carousel-indicator" type="button" data-indicator="2" aria-label="Show Payload Collections" aria-current="false"></button>
+          <button class="carousel-indicator" type="button" data-indicator="3" aria-label="Show Full MQTT 5.0 &amp; 3.1.1" aria-current="false"></button>
+          <button class="carousel-indicator" type="button" data-indicator="4" aria-label="Show Multi-Format Viewer" aria-current="false"></button>
+        </div>
+        <p class="visually-hidden" data-status aria-live="polite">Slide 1 of 5: Topic-Scoped Isolation</p>
+      </div>
+    </section>
+
+    <!-- Downloads Matrix Section -->
+    <section class="downloads-section" id="downloads" aria-label="Downloads for macOS, Windows, and Linux">
+      <div class="downloads-header">
+        <h2>Download anotherMQTT</h2>
+        <p>Free, open-source, and available across all major operating systems.</p>
+      </div>
+
+      <div class="platform-grid">
+        <!-- macOS -->
+        <div class="platform-card" id="card-mac">
+          <div class="platform-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.62-.75 1.04-1.8 1.01-2.87-.96.04-2.13.64-2.79 1.41-.58.68-1.1 1.74-1.01 2.79 1.08.08 2.17-.58 2.79-1.33z"/></svg>
+          </div>
+          <div class="platform-title">macOS</div>
+          <div class="platform-desc">Requires macOS 11 Big Sur or newer. Native Apple Silicon and Intel builds.</div>
+          <div class="download-list">
+            <a class="download-link-btn highlight" href="https://github.com/jinkun1998/anotherMQTT/releases/download/v1.0.0/anotherMQTT-1.0.0-arm64.dmg">
+              <span>Apple Silicon (M1/M2/M3/M4)</span>
+              <span class="download-meta">.dmg</span>
+            </a>
+            <a class="download-link-btn" href="https://github.com/jinkun1998/anotherMQTT/releases/download/v1.0.0/anotherMQTT-1.0.0-x64.dmg">
+              <span>Intel Macs (x64)</span>
+              <span class="download-meta">.dmg</span>
+            </a>
+            <a class="download-link-btn" href="https://github.com/jinkun1998/anotherMQTT/releases/download/v1.0.0/anotherMQTT-1.0.0-arm64.zip">
+              <span>Portable Archive</span>
+              <span class="download-meta">.zip</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Windows -->
+        <div class="platform-card" id="card-win">
+          <div class="platform-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M0 3.449L9.75 2.1v9.451H0V3.449zm10.949-1.6L24 0v11.551H10.949V1.849zM0 12.6h9.75v9.451L0 20.7V12.6zm10.949 0H24V24l-13.051-1.849V12.6z"/></svg>
+          </div>
+          <div class="platform-title">Windows</div>
+          <div class="platform-desc">Windows 10 / 11 64-bit and 32-bit. Clean installer and portable ZIP.</div>
+          <div class="download-list">
+            <a class="download-link-btn highlight" href="https://github.com/jinkun1998/anotherMQTT/releases/download/v1.0.0/anotherMQTT-Setup-1.0.0.exe">
+              <span>Universal Installer</span>
+              <span class="download-meta">.exe</span>
+            </a>
+            <a class="download-link-btn" href="https://github.com/jinkun1998/anotherMQTT/releases/download/v1.0.0/anotherMQTT-Setup-1.0.0-x64.exe">
+              <span>64-bit Installer</span>
+              <span class="download-meta">.exe</span>
+            </a>
+            <a class="download-link-btn" href="https://github.com/jinkun1998/anotherMQTT/releases/download/v1.0.0/anotherMQTT-1.0.0-x64-win.zip">
+              <span>Portable Archive (x64)</span>
+              <span class="download-meta">.zip</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Linux -->
+        <div class="platform-card" id="card-linux">
+          <div class="platform-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.003 0C9.697 0 8.01 1.543 7.502 3.861c-.51 2.318-.088 4.79-.088 4.79s-.635.312-1.385.938c-.75.625-1.572 1.595-1.928 2.871-.355 1.275-.327 2.868.563 4.606 1.037 2.022 2.766 2.738 2.766 2.738s.22 1.057.886 1.942c.666.885 1.767 1.637 3.328 1.99 1.344.305 2.645.244 3.73-.082.936-.282 1.698-.77 2.213-1.402.516-.632.748-1.458.748-1.458s1.615-.658 2.656-2.586c.89-1.65.986-3.18.666-4.428-.32-1.248-1.082-2.226-1.83-2.883-.75-.656-1.41-.99-1.41-.99s.344-2.392-.164-4.697C16.89 2.012 14.887 0 12.003 0z"/></svg>
+          </div>
+          <div class="platform-title">Linux</div>
+          <div class="platform-desc">Universal AppImage, Debian (.deb), RedHat (.rpm), and Snap.</div>
+          <div class="download-list">
+            <a class="download-link-btn highlight" href="https://github.com/jinkun1998/anotherMQTT/releases/download/v1.0.0/anotherMQTT-1.0.0-x86_64.AppImage">
+              <span>Universal AppImage (x86_64)</span>
+              <span class="download-meta">.AppImage</span>
+            </a>
+            <a class="download-link-btn" href="https://github.com/jinkun1998/anotherMQTT/releases/download/v1.0.0/anotherMQTT-1.0.0-amd64.deb">
+              <span>Debian / Ubuntu (.deb)</span>
+              <span class="download-meta">.deb</span>
+            </a>
+            <a class="download-link-btn" href="https://github.com/jinkun1998/anotherMQTT/releases/download/v1.0.0/anotherMQTT-1.0.0-x86_64.rpm">
+              <span>Fedora / RHEL (.rpm)</span>
+              <span class="download-meta">.rpm</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div>
+      <strong>anotherMQTT</strong> &copy; 2026. Free &amp; Open Source under Apache 2.0 License.
+    </div>
+    <div class="footer-links">
+      <a href="https://github.com/jinkun1998/anotherMQTT" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://github.com/jinkun1998/anotherMQTT/releases" target="_blank" rel="noopener">Releases</a>
+      <a href="https://github.com/jinkun1998/anotherMQTT/issues" target="_blank" rel="noopener">Issues</a>
+      <a href="#downloads">Downloads</a>
+    </div>
+  </footer>
+
+  <script>
+    (() => {
+      // OS Detection & Primary Button Customization
+      const ua = navigator.userAgent.toLowerCase();
+      const primaryBtn = document.getElementById('primary-download-btn');
+      const primaryText = document.getElementById('primary-download-text');
+
+      if (ua.includes('mac') || ua.includes('darwin')) {
+        primaryText.textContent = 'Download for macOS (.dmg)';
+        primaryBtn.href = 'https://github.com/jinkun1998/anotherMQTT/releases/download/v1.0.0/anotherMQTT-1.0.0-arm64.dmg';
+      } else if (ua.includes('win')) {
+        primaryText.textContent = 'Download for Windows (.exe)';
+        primaryBtn.href = 'https://github.com/jinkun1998/anotherMQTT/releases/download/v1.0.0/anotherMQTT-Setup-1.0.0.exe';
+      } else if (ua.includes('linux')) {
+        primaryText.textContent = 'Download for Linux (.AppImage)';
+        primaryBtn.href = 'https://github.com/jinkun1998/anotherMQTT/releases/download/v1.0.0/anotherMQTT-1.0.0-x86_64.AppImage';
+      } else {
+        primaryText.textContent = 'Download anotherMQTT';
+        primaryBtn.href = '#downloads';
+      }
+
+      // Feature Carousel Interactions (ported from anotherNotch)
+      const carousel = document.querySelector('[data-carousel]');
+      const slides = Array.from(document.querySelectorAll('[data-slide]'));
+      const indicators = Array.from(document.querySelectorAll('[data-indicator]'));
+      const previous = document.querySelector('[data-previous]');
+      const next = document.querySelector('[data-next]');
+      const status = document.querySelector('[data-status]');
+      const scrollLink = document.querySelector('.scroll-link');
+      const features = document.querySelector('.features');
+      const carouselStage = document.querySelector('.carousel-stage');
+      let activeIndex = 0;
+      let scrollFrame;
+      let backgroundFrame;
+
+      const titleFor = index => slides[index].querySelector('h3').textContent;
+
+      const activate = (index, scroll = false) => {
+        const nextIndex = Math.max(0, Math.min(index, slides.length - 1));
+        activeIndex = nextIndex;
+        previous.disabled = activeIndex === 0;
+        next.disabled = activeIndex === slides.length - 1;
+        indicators.forEach((indicator, indicatorIndex) =>
+          indicator.setAttribute('aria-current', String(indicatorIndex === activeIndex))
+        );
+        status.textContent = `Slide ${activeIndex + 1} of ${slides.length}: ${titleFor(activeIndex)}`;
+        if (scroll) {
+          slides[activeIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+        }
+      };
+
+      previous.addEventListener('click', () => activate(activeIndex - 1, true));
+      next.addEventListener('click', () => activate(activeIndex + 1, true));
+      indicators.forEach((indicator, index) => indicator.addEventListener('click', () => activate(index, true)));
+
+      carousel.addEventListener('keydown', event => {
+        const keys = { ArrowLeft: activeIndex - 1, ArrowRight: activeIndex + 1, Home: 0, End: slides.length - 1 };
+        if (!(event.key in keys)) return;
+        event.preventDefault();
+        activate(keys[event.key], true);
+      });
+
+      carousel.addEventListener('scroll', () => {
+        cancelAnimationFrame(scrollFrame);
+        scrollFrame = requestAnimationFrame(() =>
+          activate(Math.round(carousel.scrollLeft / carousel.clientWidth))
+        );
+      });
+
+      // Pointer glow highlight effect
+      carousel.addEventListener('pointermove', event => {
+        const bounds = carousel.getBoundingClientRect();
+        carousel.style.setProperty('--pointer-x', `${((event.clientX - bounds.left) / bounds.width) * 100}%`);
+        carousel.style.setProperty('--pointer-y', `${((event.clientY - bounds.top) / bounds.height) * 100}%`);
+      });
+
+      carousel.addEventListener('pointerleave', () => {
+        carousel.style.removeProperty('--pointer-x');
+        carousel.style.removeProperty('--pointer-y');
+      });
+
+      // Background ambient fade
+      const fadeBackground = () => {
+        const progress = document.documentElement.classList.contains('features-visible')
+          ? 1
+          : Math.min(1, window.scrollY / Math.max(features.offsetTop, 1));
+        document.documentElement.style.setProperty('--background-fade-opacity', String(0.4 + (0.6 * progress)));
+      };
+
+      const setFeaturesVisible = atFeatures => {
+        document.documentElement.classList.toggle('features-visible', atFeatures);
+        scrollLink.textContent = atFeatures ? 'Back to top' : 'Explore features';
+        fadeBackground();
+      };
+
+      window.addEventListener('scroll', () => {
+        cancelAnimationFrame(backgroundFrame);
+        backgroundFrame = requestAnimationFrame(fadeBackground);
+      }, { passive: true });
+
+      new IntersectionObserver(([entry]) => setFeaturesVisible(entry.isIntersecting), { threshold: 0.25 })
+        .observe(carouselStage);
+
+      scrollLink.addEventListener('click', event => {
+        if (!document.documentElement.classList.contains('features-visible')) return;
+        event.preventDefault();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+
+      activate(0);
+      fadeBackground();
+    })();
+  </script>
+</body>
+</html>
