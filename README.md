@@ -23,11 +23,11 @@ Website: **[https://jinkun1998.github.io/anotherMQTT/](https://jinkun1998.github
 
 Visit the [Website](https://jinkun1998.github.io/anotherMQTT/) or download directly from the [Releases](https://github.com/jinkun1998/anotherMQTT/releases/latest) page:
 
-- **macOS (Apple Silicon)**: `anotherMQTT-1.0.0-arm64.dmg`
-- **macOS (Intel)**: `anotherMQTT-1.0.0-x64.dmg`
+- **macOS (Apple Silicon)**: `anotherMQTT-1.1.0-arm64.dmg`
+- **macOS (Intel)**: `anotherMQTT-1.1.0-x64.dmg`
   *(If blocked by macOS Gatekeeper on first open: run `xattr -cr /Applications/anotherMQTT.app`)*
-- **Windows**: `anotherMQTT-Setup-1.0.0.exe` or portable `anotherMQTT-1.0.0-x64-win.zip`
-- **Linux**: `anotherMQTT-1.0.0-x86_64.AppImage`, `.deb`, `.rpm`, or `.snap`
+- **Windows**: `anotherMQTT-Setup-1.1.0.exe` or portable `anotherMQTT-1.1.0-x64-win.zip`
+- **Linux**: `anotherMQTT-1.1.0-x86_64.AppImage`, `.deb`, `.rpm`, or `.snap`
 
 ## Issues & Feature Requests
 
